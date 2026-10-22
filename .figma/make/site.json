@@ -1,0 +1,11 @@
+{
+  "title": "KINETIC",
+  "description": "Enhances user interfaces by adding interactive features like scrollable time pickers, improving usability and user experience on web pages.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
