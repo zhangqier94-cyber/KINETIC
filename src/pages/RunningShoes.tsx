@@ -34,7 +34,6 @@ type RunningShoe = {
   name: string
   image: string
   color: string
-  size: string
   status: ShoeStatus
   addedAt: string
   retiredAt?: string
@@ -112,7 +111,6 @@ const INITIAL_SHOES: RunningShoe[] = [
     name: "Nike Vomero Plus",
     image: `${assetPathPrefix}/9b9f9.png`,
     color: "White / Green",
-    size: "43",
     status: "in-use",
     addedAt: "2026-05-15T08:00:00Z",
     runs: [],
@@ -122,7 +120,6 @@ const INITIAL_SHOES: RunningShoe[] = [
     name: "New Balance Fuelcell Rebel V4",
     image: `${assetPathPrefix}/ceb2d.png`,
     color: "White / Green",
-    size: "43",
     status: "in-use",
     addedAt: "2026-04-12T08:00:00Z",
     runs: [],
@@ -132,7 +129,6 @@ const INITIAL_SHOES: RunningShoe[] = [
     name: "ANTA C202 6",
     image: `${assetPathPrefix}/85aac.png`,
     color: "White / Green",
-    size: "43",
     status: "in-use",
     addedAt: "2026-03-10T08:00:00Z",
     runs: [],
@@ -142,7 +138,6 @@ const INITIAL_SHOES: RunningShoe[] = [
     name: "361° Eleos",
     image: `${assetPathPrefix}/f5023.png`,
     color: "White / Green",
-    size: "43",
     status: "in-use",
     addedAt: "2026-02-08T08:00:00Z",
     runs: [],
@@ -152,7 +147,6 @@ const INITIAL_SHOES: RunningShoe[] = [
     name: "XTEP 260X 2.0",
     image: `${assetPathPrefix}/b4d0f.png`,
     color: "White / Green",
-    size: "43",
     status: "in-use",
     addedAt: "2026-01-05T08:00:00Z",
     runs: [],
@@ -162,7 +156,6 @@ const INITIAL_SHOES: RunningShoe[] = [
     name: "Qiaodan Huanying I",
     image: `${assetPathPrefix}/010f9.png`,
     color: "White / Green",
-    size: "43",
     status: "retired",
     addedAt: "2025-12-03T08:00:00Z",
     retiredAt: "2026-03-08T08:00:00Z",
@@ -173,7 +166,6 @@ const INITIAL_SHOES: RunningShoe[] = [
     name: "XTEP 2000KM I",
     image: `${assetPathPrefix}/f4bee.png`,
     color: "White / Green",
-    size: "43",
     status: "retired",
     addedAt: "2025-10-01T08:00:00Z",
     retiredAt: "2026-02-10T08:00:00Z",
@@ -564,7 +556,6 @@ export default function RunningShoes({ onBack }: { onBack: () => void }) {
                     name,
                     image: catalogShoe.image,
                     color: "White / Green",
-                    size: "43",
                     status: "in-use",
                     addedAt: new Date().toISOString(),
                     runs: [],
@@ -1014,7 +1005,7 @@ function RunningShoeDetail({
           <div className="shoe-detail-heading">
             <h1>{shoe.name}</h1>
             <span>
-              {shoe.color} ; {shoe.size}
+              {shoe.color}
               {shoe.status === "in-use" && (
                 <img src={imgEdit} alt="" width="16" height="16" />
               )}
