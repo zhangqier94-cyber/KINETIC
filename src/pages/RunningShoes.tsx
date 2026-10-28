@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import TimePicker from "../components/TimePicker"
+import { CatalogShoe, SHOE_RACK_CATALOG } from "../data/shoeRackCatalog"
 
 const assetPathPrefix = "/assets"
 const imgBack = `${assetPathPrefix}/04f96.svg`
@@ -40,14 +41,6 @@ type RunningShoe = {
   runs: RunRecord[]
 }
 
-type CatalogShoe = {
-  id: string
-  brand: string
-  name: string
-  image: string
-  logo: string
-}
-
 const RUN_DISTANCE_PRESETS = [
   { label: "FULL", km: 42.195 },
   { label: "HALF", km: 21.0975 },
@@ -59,125 +52,34 @@ const RUN_DISTANCE_PRESETS = [
   { label: "400M", km: 0.4 },
 ]
 
-const BRAND_LOGOS: Record<string, string> = {
-  Nike: `${assetPathPrefix}/53e60.svg`,
-  ASICS: `${assetPathPrefix}/a21d7.svg`,
-  Adidas: `${assetPathPrefix}/61752.svg`,
-  "New Balance": `${assetPathPrefix}/e47ee.svg`,
-  Brooks: `${assetPathPrefix}/f9f58.svg`,
-  Saucony: `${assetPathPrefix}/9c30d.svg`,
-}
+const HOT_NAMES = new Set([
+  "Nike Vomero Plus",
+  "Nike Vomero 18",
+  "ASICS SuperBlast 3",
+  "ASICS NovaBlast 6",
+  "Adidas Adizero Evo SL",
+  "Adidas Adizero Boston 13",
+  "New Balance Fresh Foam X 1080v14",
+  "New Balance FuelCell Rebel v4",
+  "Brooks Ghost 17",
+  "Brooks Glycerin Max",
+  "Saucony Endorphin Speed 5",
+  "Saucony Triumph 23",
+])
 
-const HOT_SHOES: CatalogShoe[] = [
-  {
-    id: "rack-nike-vomero-plus",
-    brand: "Nike",
-    name: "Vomero Plus",
-    image: `${assetPathPrefix}/fbf59.png`,
-    logo: BRAND_LOGOS.Nike,
-  },
-  {
-    id: "rack-asics-superblast-3",
-    brand: "ASICS",
-    name: "Superblast 3",
-    image: `${assetPathPrefix}/ed1ae.png`,
-    logo: BRAND_LOGOS.ASICS,
-  },
-  {
-    id: "rack-asics-novablast-5",
-    brand: "ASICS",
-    name: "Novablast 5",
-    image: `${assetPathPrefix}/50e68.png`,
-    logo: BRAND_LOGOS.ASICS,
-  },
-  {
-    id: "rack-adidas-adizero-evo-sl",
-    brand: "Adidas",
-    name: "Adizero EVO SL",
-    image: `${assetPathPrefix}/7b785.png`,
-    logo: BRAND_LOGOS.Adidas,
-  },
-  {
-    id: "rack-new-balance-fresh-foam-x",
-    brand: "New Balance",
-    name: "Fresh Foam X 1080",
-    image: `${assetPathPrefix}/7bdfd.png`,
-    logo: BRAND_LOGOS["New Balance"],
-  },
-  {
-    id: "rack-nike-vomero-18",
-    brand: "Nike",
-    name: "Vomero 18",
-    image: `${assetPathPrefix}/fa358.png`,
-    logo: BRAND_LOGOS.Nike,
-  },
-  {
-    id: "rack-brooks-ghost-max-3",
-    brand: "Brooks",
-    name: "Ghost Max 3",
-    image: `${assetPathPrefix}/41375.png`,
-    logo: BRAND_LOGOS.Brooks,
-  },
-  {
-    id: "rack-saucony-endorphin-speed",
-    brand: "Saucony",
-    name: "Endorphin Speed",
-    image: `${assetPathPrefix}/9d018.png`,
-    logo: BRAND_LOGOS.Saucony,
-  },
-]
+const SHOE_CATALOG = SHOE_RACK_CATALOG
 
-const NEW_BALANCE_SHOES: CatalogShoe[] = [
-  ["fuelcell-rebel", "FuelCell Rebel v4", "47a1d.png"],
-  ["supercomp-elite", "SuperComp Elite v5", "472f5.png"],
-  ["fresh-foam-x-1080", "Fresh Foam X 1080v14", "0ddb6.png"],
-  ["fresh-foam-1080", "Fresh Foam 1080", "fa980.png"],
-  ["fresh-foam-x-more", "Fresh Foam X More", "7bdfd.png"],
-  ["1540-v4", "1540 v4", "6b91d.png"],
-  ["1080-v15", "1080v15", "8070a.png"],
-  ["fresh-foam-x-kaiha", "Fresh Foam X Kaiha", "ac3cc.png"],
-].map(([id, name, image]) => ({
-  id: `rack-new-balance-${id}`,
-  brand: "New Balance",
-  name,
-  image: `${assetPathPrefix}/${image}`,
-  logo: BRAND_LOGOS["New Balance"],
-}))
-
-const SHOE_CATALOG = [
-  ...HOT_SHOES,
-  ...NEW_BALANCE_SHOES.filter(
-    (shoe) => !HOT_SHOES.some((hotShoe) => hotShoe.id === shoe.id),
-  ),
-]
+const HOT_SHOES = SHOE_RACK_CATALOG.filter((s) =>
+  HOT_NAMES.has(`${s.brand} ${s.name}`),
+)
 
 const SHOE_BRANDS = [
   "Nike",
-  "Adidas",
-  "On",
   "ASICS",
-  "Saucony",
-  "Brooks",
+  "Adidas",
   "New Balance",
-  "Puma",
-  "Xtep",
-  "Anta",
-  "Lining",
-  "Mizuno",
-  "Hoka",
-  "Under Armour",
-  "BMAI",
-  "Dynafish",
-  "Salomon",
-  "Reebok",
-  "Descente",
-  "Skecher",
-  "Decathlon",
-  "361°",
-  "Qiaodan",
-  "Peak",
-  "Do-Win",
-  "ERKE",
+  "Brooks",
+  "Saucony",
 ]
 
 const retiredRuns: RunRecord[] = [
