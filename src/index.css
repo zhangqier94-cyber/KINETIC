@@ -369,6 +369,276 @@ html, body, #root {
   background: #131313;
 }
 
+.shoe-rack-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  color: #fff;
+  background: #131313;
+}
+
+.shoe-rack-header {
+  display: flex;
+  flex: 0 0 72px;
+  gap: 4px;
+  align-items: center;
+  height: 72px;
+  padding: 0 24px 0 16px;
+}
+
+.shoe-rack-header > button {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-radius: 12px;
+  place-items: center;
+}
+
+.shoe-rack-header h1 {
+  margin: 0;
+  font-family: 'Inter:Black Italic', 'Inter', sans-serif;
+  font-size: 24px;
+  font-style: italic;
+  font-weight: 900;
+  line-height: 32px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.shoe-rack-content {
+  flex: 1;
+  min-height: 0;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.shoe-rack-filter-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.shoe-rack-quick-filters {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 40px 4px 0;
+  overflow-x: auto;
+}
+
+.shoe-rack-quick-filters button {
+  flex: 0 0 auto;
+  padding: 8px 16px;
+  font-family: 'Lexend:Regular', 'Lexend', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  color: #e5e2e1;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+  background: #0e0e0e;
+  border: 0;
+  border-radius: 2px;
+}
+
+.shoe-rack-quick-filters button.active {
+  color: #cf0;
+  background: #353535;
+}
+
+.shoe-rack-filter-button {
+  position: absolute;
+  right: 0;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  cursor: pointer;
+  background: linear-gradient(90deg, rgba(19, 19, 19, 0), #131313 40%);
+  border: 0;
+  place-items: center;
+}
+
+.shoe-rack-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.shoe-rack-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 220px;
+  padding: 24px;
+  overflow: hidden;
+  background-color: #131313;
+  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 168 220' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><g transform='matrix(8.4 53.116 -40.561 6.6543 -39.5 -367.18)' opacity='0.6000000238418579'><rect height='39.925' width='52.286' fill='url(%23grad)' id='quad' shape-rendering='crispEdges'/><use href='%23quad' transform='scale(1 -1)'/><use href='%23quad' transform='scale(-1 1)'/><use href='%23quad' transform='scale(-1 -1)'/></g><defs><linearGradient id='grad' gradientUnits='userSpaceOnUse' x2='5' y2='5'><stop stop-color='rgba(160,200,0,0.08)' offset='0'/><stop stop-color='rgba(99,119,19,0.49)' offset='0.5'/><stop stop-color='rgba(69,79,29,0.695)' offset='0.75'/><stop stop-color='rgba(38,38,38,0.9)' offset='1'/></linearGradient></defs></svg>");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  border-radius: 4px;
+}
+
+.shoe-rack-brand-logo {
+  display: block;
+  flex: 0 0 auto;
+  width: auto;
+  height: 20px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.shoe-rack-product {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+}
+
+.shoe-rack-add {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.shoe-rack-add:disabled {
+  cursor: default;
+  opacity: 0.25;
+}
+
+.shoe-rack-card h2 {
+  display: -webkit-box;
+  width: 120px;
+  margin: 0;
+  overflow: hidden;
+  font-family: 'Lexend:Light', 'Lexend', sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 16px;
+  color: #fff;
+  text-align: center;
+  text-transform: capitalize;
+  letter-spacing: 0.7px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.shoe-rack-empty {
+  padding: 72px 0;
+  text-align: center;
+}
+
+.shoe-rack-empty h2 {
+  margin: 0 0 8px;
+  font-family: 'Lexend:Medium', 'Lexend', sans-serif;
+  font-size: 18px;
+  color: #cf0;
+  text-transform: uppercase;
+}
+
+.shoe-rack-empty p {
+  margin: 0;
+  font-family: 'Lexend:Regular', 'Lexend', sans-serif;
+  font-size: 13px;
+  color: #c4c9ac;
+}
+
+.shoe-rack-brand-scrim {
+  position: fixed;
+  z-index: 55;
+  background: rgba(0, 0, 0, 0.23);
+  border: 0;
+  backdrop-filter: blur(3px);
+  inset: 122px 0 0;
+}
+
+.shoe-rack-brand-panel {
+  position: fixed;
+  top: 122px;
+  right: 0;
+  left: 0;
+  z-index: 60;
+  height: min(480px, calc(100dvh - 122px));
+  padding: 24px;
+  overflow-y: auto;
+  background: #131313;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.shoe-rack-brand-panel > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  margin-bottom: 24px;
+}
+
+.shoe-rack-brand-panel h2 {
+  margin: 0;
+  font-family: 'Lexend:Bold', 'Lexend', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 28px;
+  text-transform: uppercase;
+  letter-spacing: -0.4px;
+}
+
+.shoe-rack-brand-panel header button {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  place-items: center;
+}
+
+.shoe-rack-brand-panel > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.shoe-rack-brand-panel > div button {
+  min-width: 0;
+  padding: 12px 4px;
+  overflow: hidden;
+  font-family: 'Lexend:Regular', 'Lexend', sans-serif;
+  font-size: 12px;
+  line-height: 16px;
+  color: #e5e2e1;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  white-space: nowrap;
+  cursor: pointer;
+  background: #0e0e0e;
+  border: 0;
+  border-radius: 2px;
+}
+
+.shoe-rack-brand-panel > div button.active {
+  color: #cf0;
+  background: #353535;
+}
+
 .shoe-detail-header {
   display: flex;
   flex: 0 0 72px;
