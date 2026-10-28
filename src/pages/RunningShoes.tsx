@@ -13,6 +13,9 @@ const imgRetired = `${assetPathPrefix}/4897f.svg`
 const imgOutdoorRun = `${assetPathPrefix}/320ec.svg`
 const imgIndoorRun = `${assetPathPrefix}/388ae.svg`
 const imgDelete = `${assetPathPrefix}/5f369.svg`
+const imgRackFilter = `${assetPathPrefix}/b170f.svg`
+const imgRackAdd = `${assetPathPrefix}/e58d1.svg`
+const imgRackClose = `${assetPathPrefix}/2a3e1.svg`
 
 type ShoeStatus = "in-use" | "retired"
 type RunType = "Outdoor running" | "Indoor running"
@@ -37,6 +40,14 @@ type RunningShoe = {
   runs: RunRecord[]
 }
 
+type CatalogShoe = {
+  id: string
+  brand: string
+  name: string
+  image: string
+  logo: string
+}
+
 const RUN_DISTANCE_PRESETS = [
   { label: "FULL", km: 42.195 },
   { label: "HALF", km: 21.0975 },
@@ -46,6 +57,127 @@ const RUN_DISTANCE_PRESETS = [
   { label: "1KM", km: 1 },
   { label: "800M", km: 0.8 },
   { label: "400M", km: 0.4 },
+]
+
+const BRAND_LOGOS: Record<string, string> = {
+  Nike: `${assetPathPrefix}/53e60.svg`,
+  ASICS: `${assetPathPrefix}/a21d7.svg`,
+  Adidas: `${assetPathPrefix}/61752.svg`,
+  "New Balance": `${assetPathPrefix}/e47ee.svg`,
+  Brooks: `${assetPathPrefix}/f9f58.svg`,
+  Saucony: `${assetPathPrefix}/9c30d.svg`,
+}
+
+const HOT_SHOES: CatalogShoe[] = [
+  {
+    id: "rack-nike-vomero-plus",
+    brand: "Nike",
+    name: "Vomero Plus",
+    image: `${assetPathPrefix}/fbf59.png`,
+    logo: BRAND_LOGOS.Nike,
+  },
+  {
+    id: "rack-asics-superblast-3",
+    brand: "ASICS",
+    name: "Superblast 3",
+    image: `${assetPathPrefix}/ed1ae.png`,
+    logo: BRAND_LOGOS.ASICS,
+  },
+  {
+    id: "rack-asics-novablast-5",
+    brand: "ASICS",
+    name: "Novablast 5",
+    image: `${assetPathPrefix}/50e68.png`,
+    logo: BRAND_LOGOS.ASICS,
+  },
+  {
+    id: "rack-adidas-adizero-evo-sl",
+    brand: "Adidas",
+    name: "Adizero EVO SL",
+    image: `${assetPathPrefix}/7b785.png`,
+    logo: BRAND_LOGOS.Adidas,
+  },
+  {
+    id: "rack-new-balance-fresh-foam-x",
+    brand: "New Balance",
+    name: "Fresh Foam X 1080",
+    image: `${assetPathPrefix}/7bdfd.png`,
+    logo: BRAND_LOGOS["New Balance"],
+  },
+  {
+    id: "rack-nike-vomero-18",
+    brand: "Nike",
+    name: "Vomero 18",
+    image: `${assetPathPrefix}/fa358.png`,
+    logo: BRAND_LOGOS.Nike,
+  },
+  {
+    id: "rack-brooks-ghost-max-3",
+    brand: "Brooks",
+    name: "Ghost Max 3",
+    image: `${assetPathPrefix}/41375.png`,
+    logo: BRAND_LOGOS.Brooks,
+  },
+  {
+    id: "rack-saucony-endorphin-speed",
+    brand: "Saucony",
+    name: "Endorphin Speed",
+    image: `${assetPathPrefix}/9d018.png`,
+    logo: BRAND_LOGOS.Saucony,
+  },
+]
+
+const NEW_BALANCE_SHOES: CatalogShoe[] = [
+  ["fuelcell-rebel", "FuelCell Rebel v4", "47a1d.png"],
+  ["supercomp-elite", "SuperComp Elite v5", "472f5.png"],
+  ["fresh-foam-x-1080", "Fresh Foam X 1080v14", "0ddb6.png"],
+  ["fresh-foam-1080", "Fresh Foam 1080", "fa980.png"],
+  ["fresh-foam-x-more", "Fresh Foam X More", "7bdfd.png"],
+  ["1540-v4", "1540 v4", "6b91d.png"],
+  ["1080-v15", "1080v15", "8070a.png"],
+  ["fresh-foam-x-kaiha", "Fresh Foam X Kaiha", "ac3cc.png"],
+].map(([id, name, image]) => ({
+  id: `rack-new-balance-${id}`,
+  brand: "New Balance",
+  name,
+  image: `${assetPathPrefix}/${image}`,
+  logo: BRAND_LOGOS["New Balance"],
+}))
+
+const SHOE_CATALOG = [
+  ...HOT_SHOES,
+  ...NEW_BALANCE_SHOES.filter(
+    (shoe) => !HOT_SHOES.some((hotShoe) => hotShoe.id === shoe.id),
+  ),
+]
+
+const SHOE_BRANDS = [
+  "Nike",
+  "Adidas",
+  "On",
+  "ASICS",
+  "Saucony",
+  "Brooks",
+  "New Balance",
+  "Puma",
+  "Xtep",
+  "Anta",
+  "Lining",
+  "Mizuno",
+  "Hoka",
+  "Under Armour",
+  "BMAI",
+  "Dynafish",
+  "Salomon",
+  "Reebok",
+  "Descente",
+  "Skecher",
+  "Decathlon",
+  "361°",
+  "Qiaodan",
+  "Peak",
+  "Do-Win",
+  "ERKE",
 ]
 
 const retiredRuns: RunRecord[] = [
@@ -221,6 +353,174 @@ function SavedToast({ visible }: { visible: boolean }) {
   )
 }
 
+function ShoeRack({
+  time,
+  addedNames,
+  onBack,
+  onAdd,
+}: {
+  time: string
+  addedNames: Set<string>
+  onBack: () => void
+  onAdd: (shoe: CatalogShoe) => void
+}) {
+  const [filter, setFilter] = useState("Hot")
+  const [brandsOpen, setBrandsOpen] = useState(false)
+  const [pendingBrand, setPendingBrand] = useState<string | null>(null)
+  const [toastVisible, setToastVisible] = useState(false)
+  const quickFilterRef = useRef<HTMLDivElement>(null)
+  const quickFilters = ["Hot", ...SHOE_BRANDS]
+  const visibleCatalog =
+    filter === "Hot"
+      ? HOT_SHOES
+      : SHOE_CATALOG.filter(
+          (shoe) => shoe.brand.toLowerCase() === filter.toLowerCase(),
+        )
+
+  useEffect(() => {
+    if (!toastVisible) return
+    const timer = window.setTimeout(() => setToastVisible(false), 2500)
+    return () => window.clearTimeout(timer)
+  }, [toastVisible])
+
+  useEffect(() => {
+    const selectedTab = quickFilterRef.current?.querySelector<HTMLElement>(
+      `[data-filter="${filter}"]`,
+    )
+    selectedTab?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    })
+  }, [filter])
+
+  const openBrandPanel = () => {
+    setPendingBrand(filter === "Hot" ? null : filter)
+    setBrandsOpen(true)
+  }
+
+  const closeBrandPanel = () => {
+    setFilter(pendingBrand ?? "Hot")
+    setBrandsOpen(false)
+  }
+
+  return (
+    <main className="shoe-rack-page">
+      <StatusBar time={time} />
+      <header className="shoe-rack-header">
+        <button onClick={onBack} aria-label="Back to running shoes">
+          <img src={imgBack} alt="" width="21" height="21" />
+        </button>
+        <h1>Shoe Rack</h1>
+      </header>
+      <div className="shoe-rack-content">
+        <div className="shoe-rack-filter-row">
+          <div
+            ref={quickFilterRef}
+            className="shoe-rack-quick-filters no-scrollbar"
+          >
+            {quickFilters.map((brand) => (
+              <button
+                key={brand}
+                data-filter={brand}
+                className={filter === brand ? "active" : ""}
+                onClick={() => setFilter(brand)}
+              >
+                {brand}
+              </button>
+            ))}
+          </div>
+          <button
+            className="shoe-rack-filter-button"
+            aria-label="Choose running shoe brand"
+            onClick={openBrandPanel}
+          >
+            <img src={imgRackFilter} alt="" width="24" height="24" />
+          </button>
+        </div>
+
+        {visibleCatalog.length ? (
+          <div className="shoe-rack-grid">
+            {visibleCatalog.map((shoe) => {
+              const fullName = `${shoe.brand} ${shoe.name}`
+              const isAdded = addedNames.has(fullName.toLowerCase())
+              return (
+                <article className="shoe-rack-card" key={shoe.id}>
+                  <img
+                    className="shoe-rack-brand-logo"
+                    src={shoe.logo}
+                    alt=""
+                  />
+                  <button
+                    className="shoe-rack-add"
+                    aria-label={`Add ${fullName}`}
+                    disabled={isAdded}
+                    onClick={() => {
+                      onAdd(shoe)
+                      setToastVisible(true)
+                    }}
+                  >
+                    <img src={imgRackAdd} alt="" width="24" height="24" />
+                  </button>
+                  <img
+                    className="shoe-rack-product"
+                    src={shoe.image}
+                    alt={fullName}
+                  />
+                  <h2>{fullName}</h2>
+                </article>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="shoe-rack-empty">
+            <h2>No shoes available</h2>
+            <p>Choose another brand to browse running shoes.</p>
+          </div>
+        )}
+      </div>
+
+      {brandsOpen && (
+        <>
+          <button
+            className="shoe-rack-brand-scrim"
+            aria-label="Close brand filter"
+            onClick={closeBrandPanel}
+          />
+          <section
+            className="shoe-rack-brand-panel"
+            aria-label="Running shoe brands"
+          >
+            <header>
+              <h2>Running Shoe Brands</h2>
+              <button aria-label="Close brand filter" onClick={closeBrandPanel}>
+                <img src={imgRackClose} alt="" width="24" height="24" />
+              </button>
+            </header>
+            <div>
+              {SHOE_BRANDS.map((brand) => (
+                <button
+                  key={brand}
+                  className={pendingBrand === brand ? "active" : ""}
+                  onClick={() => {
+                    const nextBrand = pendingBrand === brand ? null : brand
+                    setPendingBrand(nextBrand)
+                    setFilter(nextBrand ?? "Hot")
+                    setBrandsOpen(false)
+                  }}
+                >
+                  {brand}
+                </button>
+              ))}
+            </div>
+          </section>
+        </>
+      )}
+      <SavedToast visible={toastVisible} />
+    </main>
+  )
+}
+
 function SwipeShoeRow({
   shoe,
   onOpen,
@@ -319,6 +619,7 @@ function SwipeShoeRow({
 export default function RunningShoes({ onBack }: { onBack: () => void }) {
   const [status, setStatus] = useState<ShoeStatus>("in-use")
   const [shoes, setShoes] = useState(INITIAL_SHOES)
+  const [rackOpen, setRackOpen] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [listRecordShoeId, setListRecordShoeId] = useState<string | null>(null)
   const [deleteShoeId, setDeleteShoeId] = useState<string | null>(null)
@@ -333,12 +634,46 @@ export default function RunningShoes({ onBack }: { onBack: () => void }) {
         .sort((a, b) => b.addedAt.localeCompare(a.addedAt)),
     [shoes, status],
   )
+  const addedNames = useMemo(
+    () => new Set(shoes.map((shoe) => shoe.name.toLowerCase())),
+    [shoes],
+  )
 
   useEffect(() => {
     if (!toastVisible) return
     const timer = window.setTimeout(() => setToastVisible(false), 2500)
     return () => window.clearTimeout(timer)
   }, [toastVisible])
+
+  if (rackOpen) {
+    return (
+      <ShoeRack
+        time={currentTime}
+        addedNames={addedNames}
+        onBack={() => setRackOpen(false)}
+        onAdd={(catalogShoe) => {
+          const name = `${catalogShoe.brand} ${catalogShoe.name}`
+          setShoes((items) =>
+            items.some((shoe) => shoe.name.toLowerCase() === name.toLowerCase())
+              ? items
+              : [
+                  {
+                    id: catalogShoe.id,
+                    name,
+                    image: catalogShoe.image,
+                    color: "White / Green",
+                    size: "43",
+                    status: "in-use",
+                    addedAt: new Date().toISOString(),
+                    runs: [],
+                  },
+                  ...items,
+                ],
+          )
+        }}
+      />
+    )
+  }
 
   if (selectedShoe) {
     return (
@@ -411,6 +746,7 @@ export default function RunningShoes({ onBack }: { onBack: () => void }) {
         <button
           className="running-shoes-icon-button"
           aria-label="Add running shoe"
+          onClick={() => setRackOpen(true)}
         >
           <img src={imgShoeAction} alt="" width="24" height="24" />
         </button>
