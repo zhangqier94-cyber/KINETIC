@@ -30,6 +30,20 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      # Shoe images live in zhangqier94-cyber/KINETIC-ASSETS so this repo stays
+      # small enough for Figma Make to push. Pull them in at deploy time so the
+      # app keeps reading /assets/... relative to this site.
+      - name: Fetch shoe assets
+        run: |
+          curl -fsSL -o /tmp/assets.tar.gz \
+            https://codeload.github.com/zhangqier94-cyber/KINETIC-ASSETS/tar.gz/refs/heads/main
+          mkdir -p /tmp/assets
+          tar -xzf /tmp/assets.tar.gz -C /tmp/assets --strip-components=1
+          mkdir -p public
+          rm -rf public/assets
+          mv /tmp/assets/assets public/assets
+          echo "assets: $(find public/assets -type f | wc -l) files, $(du -sh public/assets | cut -f1)"
+
       - name: Upload public/
         uses: actions/upload-pages-artifact@v3
         with:
