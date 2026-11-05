@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import TimePicker from "../components/TimePicker"
-import { CatalogShoe, SHOE_RACK_CATALOG } from "../data/shoeRackCatalog"
+import {
+  CDN,
+  type CatalogColor,
+  type CatalogShoe,
+  useShoeRackCatalog,
+} from "../data/shoeRackCatalog"
 
 const assetPathPrefix = "/assets"
 const imgBack = `${assetPathPrefix}/04f96.svg`
@@ -17,6 +22,12 @@ const imgDelete = `${assetPathPrefix}/5f369.svg`
 const imgRackFilter = `${assetPathPrefix}/b170f.svg`
 const imgRackAdd = `${assetPathPrefix}/e58d1.svg`
 const imgRackClose = `${assetPathPrefix}/2a3e1.svg`
+const imgRecognize = `${assetPathPrefix}/b48e4.svg`
+const imgCameraFrame = `${assetPathPrefix}/db0e1.svg`
+const imgShoeGuide = `${assetPathPrefix}/0c30d.svg`
+const imgFlash = `${assetPathPrefix}/24380.svg`
+const imgCamera = `${assetPathPrefix}/69737.svg`
+const imgGallery = `${assetPathPrefix}/39edd.svg`
 
 type ShoeStatus = "in-use" | "retired"
 type RunType = "Outdoor running" | "Indoor running"
@@ -31,6 +42,8 @@ type RunRecord = {
 
 type RunningShoe = {
   id: string
+  catalogId?: string
+  colorId?: string
   name: string
   image: string
   color: string
@@ -49,128 +62,6 @@ const RUN_DISTANCE_PRESETS = [
   { label: "1KM", km: 1 },
   { label: "800M", km: 0.8 },
   { label: "400M", km: 0.4 },
-]
-
-const HOT_NAMES = new Set([
-  "Nike Vomero Plus",
-  "Nike Vomero 18",
-  "ASICS SuperBlast 3",
-  "ASICS NovaBlast 6",
-  "Adidas Adizero Evo SL",
-  "Adidas Adizero Boston 13",
-  "New Balance Fresh Foam X 1080v14",
-  "New Balance FuelCell Rebel v4",
-  "Brooks Ghost 17",
-  "Brooks Glycerin Max",
-  "Saucony Endorphin Speed 5",
-  "Saucony Triumph 23",
-])
-
-const SHOE_CATALOG = SHOE_RACK_CATALOG
-
-const HOT_SHOES = SHOE_RACK_CATALOG.filter((s) =>
-  HOT_NAMES.has(`${s.brand} ${s.name}`),
-)
-
-const SHOE_BRANDS = [
-  "Nike",
-  "ASICS",
-  "Adidas",
-  "New Balance",
-  "Brooks",
-  "Saucony",
-]
-
-const retiredRuns: RunRecord[] = [
-  {
-    id: "retired-1",
-    type: "Outdoor running",
-    distanceKm: 7.88,
-    durationSeconds: 3654,
-    recordedAt: "2026-09-06T07:09:00",
-  },
-  {
-    id: "retired-2",
-    type: "Outdoor running",
-    distanceKm: 10,
-    durationSeconds: 3956,
-    recordedAt: "2026-09-08T10:23:00",
-  },
-  {
-    id: "retired-3",
-    type: "Outdoor running",
-    distanceKm: 8.08,
-    durationSeconds: 3611,
-    recordedAt: "2026-09-07T06:22:00",
-  },
-]
-
-const INITIAL_SHOES: RunningShoe[] = [
-  {
-    id: "nike-vomero-plus",
-    name: "Nike Vomero Plus",
-    image: `${assetPathPrefix}/9b9f9.png`,
-    color: "White / Green",
-    status: "in-use",
-    addedAt: "2026-05-15T08:00:00Z",
-    runs: [],
-  },
-  {
-    id: "new-balance-rebel-v4",
-    name: "New Balance Fuelcell Rebel V4",
-    image: `${assetPathPrefix}/ceb2d.png`,
-    color: "White / Green",
-    status: "in-use",
-    addedAt: "2026-04-12T08:00:00Z",
-    runs: [],
-  },
-  {
-    id: "anta-c202-6",
-    name: "ANTA C202 6",
-    image: `${assetPathPrefix}/85aac.png`,
-    color: "White / Green",
-    status: "in-use",
-    addedAt: "2026-03-10T08:00:00Z",
-    runs: [],
-  },
-  {
-    id: "361-eleos",
-    name: "361° Eleos",
-    image: `${assetPathPrefix}/f5023.png`,
-    color: "White / Green",
-    status: "in-use",
-    addedAt: "2026-02-08T08:00:00Z",
-    runs: [],
-  },
-  {
-    id: "xtep-260x-2",
-    name: "XTEP 260X 2.0",
-    image: `${assetPathPrefix}/b4d0f.png`,
-    color: "White / Green",
-    status: "in-use",
-    addedAt: "2026-01-05T08:00:00Z",
-    runs: [],
-  },
-  {
-    id: "qiaodan-huanying-1",
-    name: "Qiaodan Huanying I",
-    image: `${assetPathPrefix}/010f9.png`,
-    color: "White / Green",
-    status: "retired",
-    addedAt: "2025-12-03T08:00:00Z",
-    retiredAt: "2026-03-08T08:00:00Z",
-    runs: retiredRuns,
-  },
-  {
-    id: "xtep-2000km-1",
-    name: "XTEP 2000KM I",
-    image: `${assetPathPrefix}/f4bee.png`,
-    color: "White / Green",
-    status: "retired",
-    addedAt: "2025-10-01T08:00:00Z",
-    retiredAt: "2026-02-10T08:00:00Z",
-    runs: retiredRuns,
-  },
 ]
 
 function useCurrentTime() {
@@ -222,15 +113,30 @@ function formatPace(seconds: number, distanceKm: number) {
   return `${Math.floor(pace / 60)}’${String(pace % 60).padStart(2, "0")}”/KM`
 }
 
-function StatusBar({ time }: { time: string }) {
+function StatusBar({
+  time,
+  transparent = false,
+}: {
+  time: string
+  transparent?: boolean
+}) {
   return (
-    <div className="running-shoes-status-bar" aria-hidden="true">
+    <div
+      className={`running-shoes-status-bar${transparent ? " transparent" : ""}`}
+      aria-hidden="true"
+    >
       <div className="running-shoes-status-side">
         <span>{time}</span>
       </div>
       <div className="running-shoes-dynamic-island" />
       <div className="running-shoes-status-side">
-        <img src={imgStatusIcons} alt="" width="85.329" height="13" />
+        <img
+          src={imgStatusIcons}
+          alt=""
+          width="85.329"
+          height="13"
+          loading="lazy"
+        />
       </div>
     </div>
   )
@@ -242,40 +148,48 @@ function SavedToast({ visible }: { visible: boolean }) {
       className={`shoe-saved-toast${visible ? " visible" : ""}`}
       role="status"
     >
-      Saved.
+      Saved
     </div>
   )
 }
 
 function ShoeRack({
   time,
-  addedNames,
+  catalog,
+  catalogLoading,
+  catalogError,
+  addedColorKeys,
   onBack,
   onAdd,
+  onRetry,
 }: {
   time: string
-  addedNames: Set<string>
+  catalog: CatalogShoe[]
+  catalogLoading: boolean
+  catalogError: boolean
+  addedColorKeys: Set<string>
   onBack: () => void
-  onAdd: (shoe: CatalogShoe) => void
+  onAdd: (shoe: CatalogShoe, color: CatalogColor) => void
+  onRetry: () => void
 }) {
   const [filter, setFilter] = useState("Hot")
   const [brandsOpen, setBrandsOpen] = useState(false)
   const [pendingBrand, setPendingBrand] = useState<string | null>(null)
-  const [toastVisible, setToastVisible] = useState(false)
+  const [recognitionOpen, setRecognitionOpen] = useState(false)
+  const [manualShoe, setManualShoe] = useState<CatalogShoe | null>(null)
+  const [manualRequiresColor, setManualRequiresColor] = useState(false)
   const quickFilterRef = useRef<HTMLDivElement>(null)
-  const quickFilters = ["Hot", ...SHOE_BRANDS]
+  const brands = useMemo(
+    () => Array.from(new Set(catalog.map((shoe) => shoe.brand))),
+    [catalog],
+  )
+  const quickFilters = ["Hot", ...brands]
   const visibleCatalog =
     filter === "Hot"
-      ? HOT_SHOES
-      : SHOE_CATALOG.filter(
+      ? catalog.filter((shoe) => shoe.hot)
+      : catalog.filter(
           (shoe) => shoe.brand.toLowerCase() === filter.toLowerCase(),
         )
-
-  useEffect(() => {
-    if (!toastVisible) return
-    const timer = window.setTimeout(() => setToastVisible(false), 2500)
-    return () => window.clearTimeout(timer)
-  }, [toastVisible])
 
   useEffect(() => {
     const selectedTab = quickFilterRef.current?.querySelector<HTMLElement>(
@@ -298,12 +212,32 @@ function ShoeRack({
     setBrandsOpen(false)
   }
 
+  if (recognitionOpen) {
+    return (
+      <ShoeRecognition
+        time={time}
+        catalog={catalog}
+        onBack={() => setRecognitionOpen(false)}
+        onConfirm={(shoe) => {
+          setRecognitionOpen(false)
+          const colors = shoe.colors
+          if (colors.length === 1) {
+            onAdd(shoe, colors[0])
+          } else {
+            setManualRequiresColor(true)
+            setManualShoe(shoe)
+          }
+        }}
+      />
+    )
+  }
+
   return (
     <main className="shoe-rack-page">
       <StatusBar time={time} />
       <header className="shoe-rack-header">
         <button onClick={onBack} aria-label="Back to running shoes">
-          <img src={imgBack} alt="" width="21" height="21" />
+          <img src={imgBack} alt="" width="21" height="21" loading="lazy" />
         </button>
         <h1>Shoe Rack</h1>
       </header>
@@ -329,37 +263,70 @@ function ShoeRack({
             aria-label="Choose running shoe brand"
             onClick={openBrandPanel}
           >
-            <img src={imgRackFilter} alt="" width="24" height="24" />
+            <img
+              src={imgRackFilter}
+              alt=""
+              width="24"
+              height="24"
+              loading="lazy"
+            />
           </button>
         </div>
 
-        {visibleCatalog.length ? (
+        {catalogLoading ? (
+          <div className="shoe-rack-empty">
+            <h2>Loading...</h2>
+            <p>Loading shoe catalog</p>
+          </div>
+        ) : catalogError ? (
+          <div className="shoe-rack-empty">
+            <h2>Couldn't load shoe catalog</h2>
+            <button onClick={onRetry}>Retry</button>
+          </div>
+        ) : visibleCatalog.length ? (
           <div className="shoe-rack-grid">
             {visibleCatalog.map((shoe) => {
               const fullName = `${shoe.brand} ${shoe.name}`
-              const isAdded = addedNames.has(fullName.toLowerCase())
+              const colors = shoe.colors
+              const allColorsAdded = colors.every((color) =>
+                addedColorKeys.has(`${shoe.id}:${color.image}`),
+              )
               return (
                 <article className="shoe-rack-card" key={shoe.id}>
-                  <img
-                    className="shoe-rack-brand-logo"
-                    src={shoe.logo}
-                    alt=""
-                  />
+                  {shoe.logo && (
+                    <img
+                      className="shoe-rack-brand-logo"
+                      src={`${CDN}${shoe.logo}`}
+                      alt=""
+                      loading="lazy"
+                    />
+                  )}
                   <button
                     className="shoe-rack-add"
                     aria-label={`Add ${fullName}`}
-                    disabled={isAdded}
+                    disabled={allColorsAdded}
                     onClick={() => {
-                      onAdd(shoe)
-                      setToastVisible(true)
+                      if (colors.length === 1) {
+                        onAdd(shoe, colors[0])
+                      } else {
+                        setManualRequiresColor(false)
+                        setManualShoe(shoe)
+                      }
                     }}
                   >
-                    <img src={imgRackAdd} alt="" width="24" height="24" />
+                    <img
+                      src={imgRackAdd}
+                      alt=""
+                      width="24"
+                      height="24"
+                      loading="lazy"
+                    />
                   </button>
                   <img
                     className="shoe-rack-product"
-                    src={shoe.image}
+                    src={`${CDN}${shoe.image}`}
                     alt={fullName}
+                    loading="lazy"
                   />
                   <h2>{fullName}</h2>
                 </article>
@@ -373,6 +340,14 @@ function ShoeRack({
           </div>
         )}
       </div>
+
+      <button
+        className="shoe-rack-recognize"
+        aria-label="Identify running shoe with camera"
+        onClick={() => setRecognitionOpen(true)}
+      >
+        <img src={imgRecognize} alt="" width="32" height="32" loading="lazy" />
+      </button>
 
       {brandsOpen && (
         <>
@@ -388,11 +363,17 @@ function ShoeRack({
             <header>
               <h2>Running Shoe Brands</h2>
               <button aria-label="Close brand filter" onClick={closeBrandPanel}>
-                <img src={imgRackClose} alt="" width="24" height="24" />
+                <img
+                  src={imgRackClose}
+                  alt=""
+                  width="24"
+                  height="24"
+                  loading="lazy"
+                />
               </button>
             </header>
             <div>
-              {SHOE_BRANDS.map((brand) => (
+              {brands.map((brand) => (
                 <button
                   key={brand}
                   className={pendingBrand === brand ? "active" : ""}
@@ -410,8 +391,417 @@ function ShoeRack({
           </section>
         </>
       )}
-      <SavedToast visible={toastVisible} />
+      {manualShoe && (
+        <ManualAddShoe
+          shoe={manualShoe}
+          addedColorKeys={addedColorKeys}
+          requireColorSelection={manualRequiresColor}
+          onCancel={() => setManualShoe(null)}
+          onSave={(color) => {
+            onAdd(manualShoe, color)
+            setManualShoe(null)
+          }}
+        />
+      )}
     </main>
+  )
+}
+
+function ShoeRecognition({
+  time,
+  catalog,
+  onBack,
+  onConfirm,
+}: {
+  time: string
+  catalog: CatalogShoe[]
+  onBack: () => void
+  onConfirm: (shoe: CatalogShoe) => void
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const [photo, setPhoto] = useState<string | null>(null)
+  const [cameraError, setCameraError] = useState("")
+  const [cameraLoading, setCameraLoading] = useState(true)
+  const candidates = catalog.slice(0, 2)
+
+  const stopCamera = () => {
+    streamRef.current?.getTracks().forEach((track) => track.stop())
+    streamRef.current = null
+  }
+
+  const startCamera = async () => {
+    stopCamera()
+    setCameraError("")
+    setCameraLoading(true)
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError("Camera access is not available on this device.")
+      setCameraLoading(false)
+      return
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false,
+      })
+      streamRef.current = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+      }
+    } catch {
+      setCameraError(
+        "Camera permission was denied or the camera is unavailable. Allow access and try again.",
+      )
+    } finally {
+      setCameraLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    void startCamera()
+    return stopCamera
+  }, [])
+
+  const capturePhoto = () => {
+    const video = videoRef.current
+    if (!video?.videoWidth || !video.videoHeight) {
+      setCameraError("The camera is not ready yet. Please try again.")
+      return
+    }
+    const canvas = document.createElement("canvas")
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    canvas.getContext("2d")?.drawImage(video, 0, 0)
+    setPhoto(canvas.toDataURL("image/jpeg", 0.88))
+    stopCamera()
+  }
+
+  const usePhoto = (file?: File) => {
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      setPhoto(typeof reader.result === "string" ? reader.result : null)
+      stopCamera()
+    }
+    reader.readAsDataURL(file)
+  }
+
+  if (photo) {
+    return (
+      <main className="shoe-identify-page">
+        <StatusBar time={time} transparent />
+        <header className="shoe-identify-header">
+          <button
+            onClick={() => {
+              setPhoto(null)
+              void startCamera()
+            }}
+            aria-label="Retake shoe photo"
+          >
+            <img src={imgBack} alt="" width="21" height="21" loading="lazy" />
+          </button>
+          <h1>Identify</h1>
+        </header>
+        <section className="shoe-identify-results">
+          <p>Similar running shoes identified, please make a selection.</p>
+          <div>
+            {candidates.map((shoe) => (
+              <article key={shoe.id}>
+                <img
+                  src={`${CDN}${shoe.image}`}
+                  alt={`${shoe.brand} ${shoe.name}`}
+                  loading="lazy"
+                />
+                <h2>
+                  {shoe.brand}
+                  <br />
+                  {shoe.name}
+                </h2>
+                <button
+                  aria-label={`Confirm ${shoe.brand} ${shoe.name}`}
+                  onClick={() => onConfirm(shoe)}
+                >
+                  <img
+                    src={imgRackAdd}
+                    alt=""
+                    width="24"
+                    height="24"
+                    loading="lazy"
+                  />
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
+      </main>
+    )
+  }
+
+  return (
+    <main className="shoe-identify-page camera">
+      <StatusBar time={time} transparent />
+      <header className="shoe-identify-header">
+        <button onClick={onBack} aria-label="Back to shoe rack">
+          <img src={imgBack} alt="" width="21" height="21" loading="lazy" />
+        </button>
+        <h1>Identify Shoe</h1>
+      </header>
+      <section className="shoe-camera-view" aria-label="Camera preview">
+        <video ref={videoRef} autoPlay muted playsInline />
+        <img
+          className="shoe-camera-frame"
+          src={imgCameraFrame}
+          alt=""
+          loading="lazy"
+        />
+        {!cameraError && (
+          <img
+            className="shoe-camera-guide"
+            src={imgShoeGuide}
+            alt=""
+            loading="lazy"
+          />
+        )}
+        {cameraLoading && <p>Starting camera…</p>}
+        {cameraError && (
+          <div className="shoe-camera-error">
+            <p>{cameraError}</p>
+            <button onClick={() => void startCamera()}>Try again</button>
+          </div>
+        )}
+      </section>
+      <div className="shoe-camera-actions">
+        <button disabled aria-label="Flash is unavailable">
+          <img src={imgFlash} alt="" width="32" height="32" loading="lazy" />
+        </button>
+        <button
+          className="capture"
+          onClick={capturePhoto}
+          disabled={cameraLoading || Boolean(cameraError)}
+          aria-label="Take photo"
+        >
+          <img src={imgCamera} alt="" width="40" height="40" loading="lazy" />
+        </button>
+        <button
+          onClick={() => fileRef.current?.click()}
+          aria-label="Choose a shoe photo"
+        >
+          <img src={imgGallery} alt="" width="32" height="32" loading="lazy" />
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={(event) => usePhoto(event.target.files?.[0])}
+        />
+      </div>
+      <p className="shoe-camera-tip">
+        Tip: Please take a photo of the side of the running shoe, ensuring the
+        background is clean and free of clutter.
+      </p>
+    </main>
+  )
+}
+
+function ManualAddShoe({
+  shoe,
+  addedColorKeys,
+  requireColorSelection = false,
+  onCancel,
+  onSave,
+}: {
+  shoe: CatalogShoe
+  addedColorKeys: Set<string>
+  requireColorSelection?: boolean
+  onCancel: () => void
+  onSave: (color: CatalogColor) => void
+}) {
+  const colors = shoe.colors
+  const firstAvailableColor = colors.find(
+    (color) => !addedColorKeys.has(`${shoe.id}:${color.image}`),
+  )
+  const [selectedColorId, setSelectedColorId] = useState(
+    requireColorSelection ? "" : (firstAvailableColor?.image ?? ""),
+  )
+  const selectedColor = colors.find((color) => color.image === selectedColorId)
+  const fullName = `${shoe.brand} ${shoe.name}`
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = ""
+    }
+  }, [])
+
+  return (
+    <div className="shoe-manual-overlay" role="presentation" onClick={onCancel}>
+      <section
+        className="shoe-manual-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Add ${fullName}`}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <header>
+          <button onClick={onCancel}>Cancel</button>
+          <h2>Add Shoe</h2>
+          <button
+            className="save"
+            disabled={!selectedColor}
+            onClick={() => selectedColor && onSave(selectedColor)}
+          >
+            Save
+          </button>
+        </header>
+        <div className="shoe-manual-preview">
+          <img
+            src={`${CDN}${selectedColor?.image ?? shoe.image}`}
+            alt={fullName}
+            loading="lazy"
+          />
+        </div>
+        <div className="shoe-manual-info">
+          <h3>{fullName}</h3>
+          <div className="shoe-manual-tags">
+            {shoe.tags.map((tag) => (
+              <span key={tag}>{tag}</span>
+            ))}
+          </div>
+        </div>
+        <div className="shoe-manual-colors">
+          <p>
+            <span>Selected Colors:</span>
+            <strong>{selectedColor?.name ?? "None"}</strong>
+          </p>
+          <div className="no-scrollbar">
+            {colors.map((color) => {
+              const isAdded = addedColorKeys.has(`${shoe.id}:${color.image}`)
+              return (
+                <button
+                  key={color.image}
+                  className={selectedColorId === color.image ? "active" : ""}
+                  disabled={isAdded}
+                  aria-label={`${color.name}${isAdded ? " already added" : ""}`}
+                  onClick={() => setSelectedColorId(color.image)}
+                >
+                  <img src={`${CDN}${color.image}`} alt="" loading="lazy" />
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function EditShoeColor({
+  shoe,
+  catalogShoe,
+  usedColorKeys,
+  onCancel,
+  onSave,
+}: {
+  shoe: RunningShoe
+  catalogShoe?: CatalogShoe
+  usedColorKeys: Set<string>
+  onCancel: () => void
+  onSave: (catalogShoe: CatalogShoe | undefined, color: CatalogColor) => void
+}) {
+  const colors = catalogShoe?.colors?.length
+    ? catalogShoe.colors
+    : [
+        {
+          name: shoe.color,
+          image: shoe.image,
+        },
+      ]
+  const currentColor =
+    colors.find((color) => color.image === shoe.colorId) ??
+    colors.find(
+      (color) => color.name.toLowerCase() === shoe.color.toLowerCase(),
+    ) ??
+    colors[0]
+  const [selectedColorId, setSelectedColorId] = useState(currentColor.image)
+  const selectedColor = colors.find((color) => color.image === selectedColorId)
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = ""
+    }
+  }, [])
+
+  return (
+    <div
+      className="shoe-color-edit-overlay"
+      role="presentation"
+      onClick={onCancel}
+    >
+      <section
+        className="shoe-color-edit-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Edit color for ${shoe.name}`}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <header>
+          <button onClick={onCancel}>Cancel</button>
+          <h2>Edit Color</h2>
+          <button
+            className="save"
+            disabled={!selectedColor}
+            onClick={() => selectedColor && onSave(catalogShoe, selectedColor)}
+          >
+            Save
+          </button>
+        </header>
+        <div className="shoe-color-edit-preview">
+          <img
+            src={
+              catalogShoe
+                ? `${CDN}${selectedColor?.image ?? catalogShoe.image}`
+                : (selectedColor?.image ?? shoe.image)
+            }
+            alt={`${shoe.name} ${selectedColor?.name ?? shoe.color}`}
+            loading="lazy"
+          />
+          <h3>{shoe.name}</h3>
+          <p>{selectedColor?.name ?? shoe.color}</p>
+        </div>
+        <div className="shoe-color-edit-options no-scrollbar">
+          {colors.map((color) => {
+            const colorKey = catalogShoe
+              ? `${catalogShoe.id}:${color.image}`
+              : ""
+            const isCurrent = color.image === currentColor.image
+            const isUsed =
+              Boolean(colorKey) && usedColorKeys.has(colorKey) && !isCurrent
+            return (
+              <button
+                key={color.image}
+                className={selectedColorId === color.image ? "active" : ""}
+                disabled={isUsed}
+                aria-label={`${color.name}${
+                  isCurrent ? ", current color" : ""
+                }${isUsed ? ", already used" : ""}`}
+                onClick={() => setSelectedColorId(color.image)}
+              >
+                <img
+                  src={catalogShoe ? `${CDN}${color.image}` : color.image}
+                  alt=""
+                  loading="lazy"
+                />
+                <span>{color.name}</span>
+              </button>
+            )
+          })}
+        </div>
+      </section>
+    </div>
   )
 }
 
@@ -438,7 +828,7 @@ function SwipeShoeRow({
         aria-label={`Delete ${shoe.name}`}
         onClick={onDelete}
       >
-        <img src={imgDelete} alt="" width="24" height="24" />
+        <img src={imgDelete} alt="" width="24" height="24" loading="lazy" />
       </button>
       <article
         className={`running-shoe-row${
@@ -481,7 +871,7 @@ function SwipeShoeRow({
         onPointerCancel={() => setOffset(0)}
       >
         <div className="running-shoe-image">
-          <img src={shoe.image} alt={shoe.name} />
+          <img src={shoe.image} alt={shoe.name} loading="lazy" />
         </div>
         <div className="running-shoe-details">
           <h2>{shoe.name}</h2>
@@ -500,7 +890,13 @@ function SwipeShoeRow({
                   onRecord()
                 }}
               >
-                <img src={imgEdit} alt="" width="16" height="16" />
+                <img
+                  src={imgEdit}
+                  alt=""
+                  width="16"
+                  height="16"
+                  loading="lazy"
+                />
               </button>
             )}
           </p>
@@ -511,8 +907,14 @@ function SwipeShoeRow({
 }
 
 export default function RunningShoes({ onBack }: { onBack: () => void }) {
+  const {
+    catalog,
+    loading: catalogLoading,
+    error: catalogError,
+    retry: retryCatalog,
+  } = useShoeRackCatalog()
   const [status, setStatus] = useState<ShoeStatus>("in-use")
-  const [shoes, setShoes] = useState(INITIAL_SHOES)
+  const [shoes, setShoes] = useState<RunningShoe[]>([])
   const [rackOpen, setRackOpen] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [listRecordShoeId, setListRecordShoeId] = useState<string | null>(null)
@@ -528,8 +930,15 @@ export default function RunningShoes({ onBack }: { onBack: () => void }) {
         .sort((a, b) => b.addedAt.localeCompare(a.addedAt)),
     [shoes, status],
   )
-  const addedNames = useMemo(
-    () => new Set(shoes.map((shoe) => shoe.name.toLowerCase())),
+  const addedColorKeys = useMemo(
+    () =>
+      new Set(
+        shoes.flatMap((shoe) =>
+          shoe.catalogId && shoe.colorId
+            ? [`${shoe.catalogId}:${shoe.colorId}`]
+            : [],
+        ),
+      ),
     [shoes],
   )
 
@@ -543,19 +952,28 @@ export default function RunningShoes({ onBack }: { onBack: () => void }) {
     return (
       <ShoeRack
         time={currentTime}
-        addedNames={addedNames}
+        catalog={catalog}
+        catalogLoading={catalogLoading}
+        catalogError={catalogError}
+        addedColorKeys={addedColorKeys}
         onBack={() => setRackOpen(false)}
-        onAdd={(catalogShoe) => {
+        onRetry={retryCatalog}
+        onAdd={(catalogShoe, color) => {
           const name = `${catalogShoe.brand} ${catalogShoe.name}`
+          const colorKey = `${catalogShoe.id}:${color.image}`
           setShoes((items) =>
-            items.some((shoe) => shoe.name.toLowerCase() === name.toLowerCase())
+            items.some(
+              (shoe) => `${shoe.catalogId}:${shoe.colorId}` === colorKey,
+            )
               ? items
               : [
                   {
-                    id: catalogShoe.id,
+                    id: `${catalogShoe.id}-${color.image}`,
+                    catalogId: catalogShoe.id,
+                    colorId: color.image,
                     name,
-                    image: catalogShoe.image,
-                    color: "White / Green",
+                    image: `${CDN}${color.image}`,
+                    color: color.name,
                     status: "in-use",
                     addedAt: new Date().toISOString(),
                     runs: [],
@@ -563,6 +981,9 @@ export default function RunningShoes({ onBack }: { onBack: () => void }) {
                   ...items,
                 ],
           )
+          setRackOpen(false)
+          setStatus("in-use")
+          setToastVisible(true)
         }}
       />
     )
@@ -574,6 +995,7 @@ export default function RunningShoes({ onBack }: { onBack: () => void }) {
         <RunningShoeDetail
           shoe={selectedShoe}
           time={currentTime}
+          catalog={catalog}
           onBack={() => setSelectedId(null)}
           onAddRun={(run) => {
             setShoes((items) =>
@@ -616,6 +1038,23 @@ export default function RunningShoes({ onBack }: { onBack: () => void }) {
             )
             setSelectedId(null)
           }}
+          usedColorKeys={addedColorKeys}
+          onChangeColor={(catalogShoe, color) => {
+            setShoes((items) =>
+              items.map((shoe) =>
+                shoe.id === selectedShoe.id
+                  ? {
+                      ...shoe,
+                      catalogId: catalogShoe?.id ?? shoe.catalogId,
+                      colorId: color.image,
+                      color: color.name,
+                      image: catalogShoe ? `${CDN}${color.image}` : color.image,
+                    }
+                  : shoe,
+              ),
+            )
+            setToastVisible(true)
+          }}
         />
         <SavedToast visible={toastVisible} />
       </>
@@ -632,7 +1071,7 @@ export default function RunningShoes({ onBack }: { onBack: () => void }) {
             onClick={onBack}
             aria-label="Back"
           >
-            <img src={imgBack} alt="" width="21" height="21" />
+            <img src={imgBack} alt="" width="21" height="21" loading="lazy" />
           </button>
           <h1>Running Shoe</h1>
         </div>
@@ -641,7 +1080,13 @@ export default function RunningShoes({ onBack }: { onBack: () => void }) {
           aria-label="Add running shoe"
           onClick={() => setRackOpen(true)}
         >
-          <img src={imgShoeAction} alt="" width="24" height="24" />
+          <img
+            src={imgShoeAction}
+            alt=""
+            width="24"
+            height="24"
+            loading="lazy"
+          />
         </button>
       </header>
 
@@ -679,7 +1124,7 @@ export default function RunningShoes({ onBack }: { onBack: () => void }) {
         ) : (
           <section className="running-shoes-empty">
             <div className="running-shoes-empty-illustration">
-              <img src={imgEmpty} alt="" />
+              <img src={imgEmpty} alt="" loading="lazy" />
             </div>
             <div>
               <h2>No shoes here</h2>
@@ -689,7 +1134,7 @@ export default function RunningShoes({ onBack }: { onBack: () => void }) {
                 please switch status or add a new one.
               </p>
             </div>
-            <button>Add shoe</button>
+            <button onClick={() => setRackOpen(true)}>Add shoe</button>
           </section>
         )}
       </div>
@@ -873,7 +1318,7 @@ function SwipeRunRecord({
         aria-label="Delete running record"
         onClick={onDelete}
       >
-        <img src={imgDelete} alt="" width="24" height="24" />
+        <img src={imgDelete} alt="" width="24" height="24" loading="lazy" />
       </button>
       <article
         className="shoe-run-card"
@@ -906,6 +1351,7 @@ function SwipeRunRecord({
           alt=""
           width="72"
           height="72"
+          loading="lazy"
         />
         <div className="shoe-run-card-top">
           <span>{run.type}</span>
@@ -925,36 +1371,54 @@ function SwipeRunRecord({
 function RunningShoeDetail({
   shoe,
   time,
+  catalog,
   onBack,
   onAddRun,
   onDeleteRun,
   onRetire,
   onRemove,
+  usedColorKeys,
+  onChangeColor,
 }: {
   shoe: RunningShoe
   time: string
+  catalog: CatalogShoe[]
   onBack: () => void
   onAddRun: (run: RunRecord) => void
   onDeleteRun: (runId: string) => void
   onRetire: () => void
   onRemove: () => void
+  usedColorKeys: Set<string>
+  onChangeColor: (
+    catalogShoe: CatalogShoe | undefined,
+    color: CatalogColor,
+  ) => void
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [confirmAction, setConfirmAction] =
     useState<"retire" | "remove" | null>(null)
   const [deleteRunId, setDeleteRunId] = useState<string | null>(null)
   const [recordStep, setRecordStep] = useState<1 | 2 | null>(null)
+  const [colorEditOpen, setColorEditOpen] = useState(false)
   const [runType, setRunType] = useState<RunType>("Outdoor running")
   const [distance, setDistance] = useState("")
   const distanceValue = Number(distance)
 
   useEffect(() => {
     document.body.style.overflow =
-      menuOpen || confirmAction || deleteRunId || recordStep ? "hidden" : ""
+      menuOpen || confirmAction || deleteRunId || recordStep || colorEditOpen
+        ? "hidden"
+        : ""
     return () => {
       document.body.style.overflow = ""
     }
-  }, [menuOpen, confirmAction, deleteRunId, recordStep])
+  }, [menuOpen, confirmAction, deleteRunId, recordStep, colorEditOpen])
+
+  const catalogShoe = catalog.find(
+    (item) =>
+      item.id === shoe.catalogId ||
+      `${item.brand} ${item.name}`.toLowerCase() === shoe.name.toLowerCase(),
+  )
 
   const startRecording = () => {
     setMenuOpen(false)
@@ -1000,16 +1464,27 @@ function RunningShoeDetail({
             onClick={onBack}
             aria-label="Back to running shoes"
           >
-            <img src={imgBack} alt="" width="21" height="21" />
+            <img src={imgBack} alt="" width="21" height="21" loading="lazy" />
           </button>
           <div className="shoe-detail-heading">
             <h1>{shoe.name}</h1>
-            <span>
+            <button
+              className="shoe-detail-color-edit"
+              disabled={shoe.status !== "in-use"}
+              onClick={() => setColorEditOpen(true)}
+              aria-label={`Edit color, current color ${shoe.color}`}
+            >
               {shoe.color}
               {shoe.status === "in-use" && (
-                <img src={imgEdit} alt="" width="16" height="16" />
+                <img
+                  src={imgEdit}
+                  alt=""
+                  width="16"
+                  height="16"
+                  loading="lazy"
+                />
               )}
-            </span>
+            </button>
           </div>
         </div>
         <div className="shoe-detail-actions">
@@ -1017,7 +1492,7 @@ function RunningShoeDetail({
             aria-label="Running shoe actions"
             onClick={() => setMenuOpen(true)}
           >
-            <img src={imgMore} alt="" width="24" height="24" />
+            <img src={imgMore} alt="" width="24" height="24" loading="lazy" />
           </button>
         </div>
       </header>
@@ -1030,12 +1505,14 @@ function RunningShoeDetail({
             }`}
             src={shoe.image}
             alt={shoe.name}
+            loading="lazy"
           />
           {shoe.status === "retired" && (
             <img
               className="shoe-retired-badge"
               src={imgRetired}
               alt="Retired"
+              loading="lazy"
             />
           )}
           <div className="shoe-total">
@@ -1051,7 +1528,13 @@ function RunningShoeDetail({
                 aria-label="Record a run"
                 onClick={startRecording}
               >
-                <img src={imgEdit} alt="" width="16" height="16" />
+                <img
+                  src={imgEdit}
+                  alt=""
+                  width="16"
+                  height="16"
+                  loading="lazy"
+                />
               </button>
             )}
           </div>
@@ -1079,7 +1562,13 @@ function RunningShoeDetail({
           ) : (
             <div className="shoe-runs-empty">
               <div>
-                <img src={imgEmptyRun} alt="" width="72" height="72" />
+                <img
+                  src={imgEmptyRun}
+                  alt=""
+                  width="72"
+                  height="72"
+                  loading="lazy"
+                />
               </div>
               <h2>No runs recorded yet</h2>
               <p>
@@ -1091,6 +1580,18 @@ function RunningShoeDetail({
           )}
         </section>
       </div>
+      {colorEditOpen && (
+        <EditShoeColor
+          shoe={shoe}
+          catalogShoe={catalogShoe}
+          usedColorKeys={usedColorKeys}
+          onCancel={() => setColorEditOpen(false)}
+          onSave={(nextCatalogShoe, color) => {
+            onChangeColor(nextCatalogShoe, color)
+            setColorEditOpen(false)
+          }}
+        />
+      )}
 
       {menuOpen && (
         <div

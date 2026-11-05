@@ -105,6 +105,10 @@ html, body, #root {
   background: #131313;
 }
 
+.running-shoes-status-bar.transparent {
+  background: transparent;
+}
+
 .running-shoes-status-side {
   display: flex;
   flex: 1;
@@ -416,15 +420,18 @@ html, body, #root {
 .shoe-rack-content {
   flex: 1;
   min-height: 0;
-  padding: 24px;
+  padding: 0 24px 132px;
   overflow-y: auto;
 }
 
 .shoe-rack-filter-row {
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   margin-bottom: 24px;
+  background: #131313;
 }
 
 .shoe-rack-quick-filters {
@@ -522,6 +529,29 @@ html, body, #root {
   opacity: 0.25;
 }
 
+.shoe-rack-recognize {
+  position: fixed;
+  bottom: max(60px, calc(env(safe-area-inset-bottom) + 24px));
+  left: 50%;
+  z-index: 40;
+  display: grid;
+  width: 96px;
+  height: 56px;
+  padding: 12px 32px;
+  cursor: pointer;
+  background: linear-gradient(150deg, #c3f400, #fff);
+  border: 0;
+  border-radius: 32px;
+  box-shadow: 0 4px 12px rgba(195, 244, 0, 0.15);
+  transform: translateX(-50%);
+  place-items: center;
+}
+
+.shoe-rack-recognize img {
+  width: 32px;
+  height: 32px;
+}
+
 .shoe-rack-card h2 {
   display: -webkit-box;
   width: 120px;
@@ -574,26 +604,30 @@ html, body, #root {
   right: 0;
   left: 0;
   z-index: 60;
-  height: min(480px, calc(100dvh - 122px));
-  padding: 24px;
-  overflow-y: auto;
+  height: 544px;
+  padding: 0 24px 24px;
+  overflow-y: hidden;
   background: #131313;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
 .shoe-rack-brand-panel > header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   height: 40px;
   margin-bottom: 24px;
+  background: #131313;
 }
 
 .shoe-rack-brand-panel h2 {
   margin: 0;
-  font-family: 'Lexend:Bold', 'Lexend', sans-serif;
+  font-family: 'Lexend:Regular', 'Lexend', sans-serif;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 400;
   line-height: 28px;
   text-transform: uppercase;
   letter-spacing: -0.4px;
@@ -637,6 +671,445 @@ html, body, #root {
 .shoe-rack-brand-panel > div button.active {
   color: #cf0;
   background: #353535;
+}
+
+@keyframes shoe-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.shoe-manual-overlay {
+  position: fixed;
+  z-index: 70;
+  display: flex;
+  align-items: flex-end;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(3px);
+}
+
+.shoe-manual-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  height: min(600px, calc(100dvh - 24px));
+  overflow: hidden;
+  background: #1c1b1b;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: shoe-sheet-up 0.28s ease-out;
+}
+
+.shoe-manual-sheet > header {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 24px 16px;
+}
+
+.shoe-manual-sheet > header button {
+  padding: 0;
+  font-family: 'Lexend:Medium', 'Lexend', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.shoe-manual-sheet > header button.save {
+  font-family: 'Lexend:Bold', 'Lexend', sans-serif;
+  font-weight: 700;
+  color: #cf0;
+}
+
+.shoe-manual-sheet > header button:disabled {
+  color: #555;
+  cursor: default;
+}
+
+.shoe-manual-sheet > header h2 {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  width: 121px;
+  margin: 0;
+  font-family: 'Lexend:Bold', 'Lexend', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 28px;
+  text-align: center;
+  letter-spacing: -0.4px;
+  transform: translateX(-50%);
+}
+
+.shoe-manual-preview {
+  display: grid;
+  flex: 0 0 220px;
+  width: 100%;
+  height: 220px;
+  place-items: center;
+}
+
+.shoe-manual-preview img {
+  width: 220px;
+  height: 220px;
+  object-fit: contain;
+}
+
+.shoe-manual-info {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 24px;
+}
+
+.shoe-manual-info h3 {
+  margin: 0;
+  font-family: 'Lexend:Bold', 'Lexend', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  text-transform: capitalize;
+  letter-spacing: 1px;
+}
+
+.shoe-manual-tags {
+  display: flex;
+  gap: 8px;
+}
+
+.shoe-manual-tags span {
+  padding: 4px 8px;
+  font-family: 'Lexend:Regular', 'Lexend', sans-serif;
+  font-size: 12px;
+  line-height: 16px;
+  color: #e5e2e1;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  background: #353535;
+  border-radius: 2px;
+}
+
+.shoe-manual-colors {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shoe-manual-colors > p {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 0;
+  padding-left: 24px;
+  font-family: 'Lexend:Regular', 'Lexend', sans-serif;
+  font-size: 10px;
+  line-height: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.shoe-manual-colors > p span {
+  color: #c4c9ac;
+}
+
+.shoe-manual-colors > p strong {
+  font-weight: 400;
+  color: #fff;
+}
+
+.shoe-manual-colors > div {
+  display: flex;
+  gap: 8px;
+  padding: 4px 24px;
+  overflow-x: auto;
+}
+
+.shoe-manual-colors button {
+  display: grid;
+  flex: 0 0 60px;
+  width: 60px;
+  height: 60px;
+  padding: 5px;
+  cursor: pointer;
+  background: none;
+  border: 1px solid rgba(237, 237, 237, 0.17);
+  border-radius: 2px;
+  place-items: center;
+}
+
+.shoe-manual-colors button.active {
+  border-color: #cf0;
+}
+
+.shoe-manual-colors button:disabled {
+  cursor: default;
+  border-color: rgba(68, 73, 51, 0.15);
+  opacity: 0.4;
+}
+
+.shoe-manual-colors button img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.shoe-identify-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  color: #fff;
+  background:
+    radial-gradient(circle at -5% 0%, rgba(160, 200, 0, 0.12), transparent 48%),
+    #131313;
+}
+
+.shoe-identify-header {
+  display: flex;
+  flex: 0 0 72px;
+  gap: 4px;
+  align-items: center;
+  height: 72px;
+  padding: 0 24px 0 16px;
+}
+
+.shoe-identify-header button {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  place-items: center;
+}
+
+.shoe-identify-header h1 {
+  margin: 0;
+  font-family: 'Inter:Black Italic', 'Inter', sans-serif;
+  font-size: 24px;
+  font-style: italic;
+  font-weight: 900;
+  line-height: 32px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.shoe-camera-view {
+  position: relative;
+  flex: 0 0 auto;
+  width: calc(100% - 48px);
+  max-width: 480px;
+  height: min(45.31dvh, 480px);
+  min-height: 300px;
+  margin: 24px auto 0;
+  overflow: hidden;
+  background: #000;
+  border-radius: 4px;
+}
+
+.shoe-camera-view video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.shoe-camera-frame,
+.shoe-camera-guide {
+  position: absolute;
+  pointer-events: none;
+}
+
+.shoe-camera-frame {
+  width: 100%;
+  height: 100%;
+  inset: 0;
+}
+
+.shoe-camera-guide {
+  top: 50%;
+  left: 50%;
+  width: 87.5%;
+  height: auto;
+  opacity: 0.78;
+  transform: translate(-50%, -50%);
+}
+
+.shoe-camera-view > p {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: 0;
+  font-family: 'Lexend:Regular', 'Lexend', sans-serif;
+  font-size: 14px;
+  color: #c4c9ac;
+  transform: translate(-50%, -50%);
+}
+
+.shoe-camera-error {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.82);
+  inset: 0;
+}
+
+.shoe-camera-error p,
+.shoe-camera-tip {
+  margin: 0;
+  font-family: 'Lexend:Regular', 'Lexend', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: rgba(196, 201, 172, 0.7);
+}
+
+.shoe-camera-error button {
+  padding: 10px 18px;
+  font-family: 'Lexend:Medium', 'Lexend', sans-serif;
+  color: #161e00;
+  cursor: pointer;
+  background: #cf0;
+  border: 0;
+  border-radius: 2px;
+}
+
+.shoe-camera-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  width: calc(100% - 64px);
+  max-width: 420px;
+  margin: auto auto 32px;
+}
+
+.shoe-camera-actions button {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  padding: 16px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid rgba(237, 237, 237, 0.25);
+  border-radius: 50%;
+  place-items: center;
+}
+
+.shoe-camera-actions button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.shoe-camera-actions button.capture {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, #c3f400, #fff);
+  border: 0;
+  box-shadow: 0 4px 12px rgba(195, 244, 0, 0.15);
+}
+
+.shoe-camera-actions input {
+  display: none;
+}
+
+.shoe-camera-tip {
+  flex: 0 0 auto;
+  width: calc(100% - 48px);
+  max-width: 480px;
+  margin: 0 auto max(40px, env(safe-area-inset-bottom));
+  padding: 16px 12px;
+  border: 1px solid rgba(237, 237, 237, 0.17);
+  border-radius: 4px;
+}
+
+.shoe-camera-tip::before {
+  content: 'Tip: ';
+  color: #e5e2e1;
+}
+
+.shoe-identify-results {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 0;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.shoe-identify-results > p {
+  margin: 0;
+  font-family: 'Lexend:Regular', 'Lexend', sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  color: #c4c9ac;
+}
+
+.shoe-identify-results > div {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.shoe-identify-results article {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-height: 120px;
+}
+
+.shoe-identify-results article > img {
+  flex: 0 0 120px;
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+}
+
+.shoe-identify-results h2 {
+  flex: 1;
+  margin: 0;
+  font-family: 'Lexend:Medium', 'Lexend', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 28px;
+  text-transform: capitalize;
+  letter-spacing: 0.7px;
+}
+
+.shoe-identify-results button {
+  display: grid;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  padding: 4px;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  place-items: center;
 }
 
 .shoe-detail-header {
@@ -687,7 +1160,8 @@ html, body, #root {
   white-space: nowrap;
 }
 
-.shoe-detail-heading span {
+.shoe-detail-heading span,
+.shoe-detail-color-edit {
   display: flex;
   gap: 4px;
   align-items: center;
@@ -695,6 +1169,152 @@ html, body, #root {
   font-size: 14px;
   line-height: 20px;
   color: #c4c9ac;
+}
+
+.shoe-detail-color-edit {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  width: fit-content;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.shoe-detail-color-edit:disabled {
+  cursor: default;
+}
+
+.shoe-color-edit-overlay {
+  position: fixed;
+  z-index: 75;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(3px);
+  inset: 0;
+}
+
+.shoe-color-edit-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-height: min(560px, calc(100dvh - 24px));
+  padding-bottom: max(28px, env(safe-area-inset-bottom));
+  overflow: hidden;
+  background: #1c1b1b;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: shoe-sheet-up 0.28s ease-out;
+}
+
+.shoe-color-edit-sheet > header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 24px 8px;
+}
+
+.shoe-color-edit-sheet > header button {
+  padding: 0;
+  font-family: 'Lexend:Medium', 'Lexend', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.shoe-color-edit-sheet > header button.save {
+  font-weight: 700;
+  color: #cf0;
+}
+
+.shoe-color-edit-sheet > header h2 {
+  position: absolute;
+  left: 50%;
+  margin: 0;
+  font-family: 'Lexend:Bold', 'Lexend', sans-serif;
+  font-size: 18px;
+  line-height: 28px;
+  transform: translateX(-50%);
+}
+
+.shoe-color-edit-preview {
+  display: grid;
+  padding: 0 24px;
+  text-align: center;
+  place-items: center;
+}
+
+.shoe-color-edit-preview img {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+}
+
+.shoe-color-edit-preview h3 {
+  margin: 0;
+  font-family: 'Lexend:Medium', 'Lexend', sans-serif;
+  font-size: 18px;
+  line-height: 28px;
+}
+
+.shoe-color-edit-preview p {
+  margin: 2px 0 0;
+  font-family: 'Lexend:Regular', 'Lexend', sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  color: #c4c9ac;
+}
+
+.shoe-color-edit-options {
+  display: flex;
+  gap: 10px;
+  padding: 4px 24px;
+  overflow-x: auto;
+}
+
+.shoe-color-edit-options button {
+  display: flex;
+  flex: 0 0 76px;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  width: 76px;
+  padding: 6px;
+  font-family: 'Lexend:Regular', 'Lexend', sans-serif;
+  font-size: 10px;
+  line-height: 14px;
+  color: #c4c9ac;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid rgba(237, 237, 237, 0.17);
+  border-radius: 2px;
+}
+
+.shoe-color-edit-options button.active {
+  color: #fff;
+  border-color: #cf0;
+}
+
+.shoe-color-edit-options button:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+.shoe-color-edit-options img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
 }
 
 .shoe-detail-actions {
